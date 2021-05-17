@@ -17,7 +17,21 @@
         :key="stock.symbol"
         class="stock"
         @click="toggleSelectStock(stock.symbol)"
-      ><b-badge :variant="stockBadgeVariant(stock.symbol)">{{stock.symbol}}</b-badge></span>
+      >
+        <b-badge :variant="stockBadgeVariant(stock.symbol)">{{stock.symbol}}</b-badge>
+      </span>
+      <span class="stock">
+        <b-badge
+          variant="success"
+          @click="selectAllStocks()"
+        >Todos</b-badge>
+      </span>
+      <span class="stock">
+        <b-badge
+          variant="danger"
+          @click="unselectAllStocks()"
+        >Nenhum</b-badge>
+      </span>
     </div>
 
     <!-- Listagem de ações -->
@@ -133,6 +147,12 @@ export default {
         },
         100
       )
+    },
+    selectAllStocks() {
+      this.selectedStocks = this._.cloneDeep(this.supportedSymbols);
+    },
+    unselectAllStocks() {
+      this.selectedStocks = [];
     },
     toggleSelectStock(symbol) {
       var selectedStockscopy = this._.cloneDeep(this.selectedStocks);
