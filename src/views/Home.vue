@@ -67,8 +67,7 @@
 
 <style lang="scss">
 .selection-box {
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin: 20px;
 }
 .selection-box .stock {
   margin-left: 5px;
@@ -138,6 +137,20 @@ export default {
     }
   },
   watch: {
+    selectedStocks: {
+      handler(newValue, oldValue) {
+        var added = [], removed = [];
+        added = this._.difference(newValue, oldValue)
+        removed = this._.difference(oldValue, newValue)
+        if (added.length) {
+          this.subscribe(added);
+        }
+        if (removed.length) {
+          this.unsubscribe(removed);
+        }
+      },
+      deep: false
+    }
   },
   methods: {
     showListInterval() {
@@ -207,9 +220,9 @@ export default {
 
           this.logMessage(parsed);
 
-          //Fará o subscribe somente se o usuário não
-          //cancelou o subscribe.
-          if (this.autoSubscribe) {
+          //Fará o subscribe somente se não for a primeira conexão.
+          //Na primeira conexão o subscribe será feito pelo watch de selectedStocks.
+          if (!this.isFirstConnection) {
             this.subscribe(this.selectedStocks);
           }
           this.connected = true;
@@ -243,21 +256,23 @@ export default {
     },
     //Faz o subscribe para receber atualizações das stocks.
     subscribe(symbols) {
+      console.log('subscribe', symbols);
       this.autoSubscribe = true;
       var message = {
         "event": "subscribe",
         "stocks": symbols
       }
-      this.$socket.sendObj(message)
+      this.$socket.sendObj(message);
     },
     //Para o subscribe que recebe atualizações das stocks.
     unsubscribe(symbols) {
+      console.log('unsubscribe', symbols);
       this.autoSubscribe = false;
       var message = {
         "event": "unsubscribe",
         "stocks": symbols
       }
-      this.$socket.sendObj(message)
+      this.$socket.sendObj(message);
     }
   }
 }
