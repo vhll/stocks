@@ -129,13 +129,13 @@ export default {
     showListInterval() {
       this.listUpdateInterval = setInterval(
         ()=>{
-          this.stocksDataList = JSON.parse(JSON.stringify(this.stocksData));
+          this.stocksDataList = this._.cloneDeep(this.stocksData);
         },
         100
       )
     },
     toggleSelectStock(symbol) {
-      var selectedStockscopy = this.selectedStocks.slice(0);
+      var selectedStockscopy = this._.cloneDeep(this.selectedStocks);
       if ( this.isStockSelected(symbol) ) {
         selectedStockscopy.splice(this.selectedStocks.indexOf(symbol),1);
       } else {
@@ -181,8 +181,8 @@ export default {
 
           //Na primeira conexão serão observadas todas as ações.
           if ( this.isFirstConnection ) {
-            this.observedStocks = this.supportedSymbols.slice(0);
-            this.selectedStocks = this.supportedSymbols.slice(0);
+            this.observedStocks = this._.cloneDeep(this.supportedSymbols);
+            this.selectedStocks = this._.cloneDeep(this.supportedSymbols);
           }
 
           this.logMessage(parsed);

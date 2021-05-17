@@ -24,6 +24,12 @@ Vue.use(
   }
 )
 
+//Lodash
+import VueLodash from 'vue-lodash'
+import lodash from 'lodash'
+// name is optional
+Vue.use(VueLodash, { name: 'custom' , lodash: lodash })
+
 Vue.config.productionTip = false
 
 new Vue({
