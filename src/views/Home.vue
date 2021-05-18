@@ -47,7 +47,7 @@
           text-variant="white"
           :header="stock.symbol"
           class="text-center"
-          v-for="stock in stocksDataList"
+          v-for="(stock, index) in stocksDataList"
           :key="stock.symbol"
           v-show="isStockSelected(stock.symbol)"
         >
@@ -60,7 +60,23 @@
             </div>
           </template>
           <b-card-text>
-            <span>R${{stock.basePrice.toFixed(2)}}</span>
+            <div
+              class="price"
+            >
+              <span>R${{stock.basePrice.toFixed(2)}}</span>
+              <div
+                class="icon"
+              >
+                <b-icon
+                  :id="'tooltip-target-' + index"
+                  :icon="priceIcon(stock.symbol, stock.basePrice)"
+                  :variant="priceVariant(stock.symbol, stock.basePrice)"
+                ></b-icon>
+                <b-tooltip :target="'tooltip-target-' + index" triggers="hover">
+                  Preço no início desta sessão: R${{originalStocksPrices[stock.symbol].toFixed(2)}}
+                </b-tooltip>
+              </div>
+            </div>
           </b-card-text>
         </b-card>
       </b-card-group>
@@ -106,6 +122,10 @@
 .connecting .disabled{
   opacity: 1 !important;
 }
+.price .icon{
+  display: inline-block;
+  padding-left: 5px;
+}
 </style>
 
 <script>
@@ -117,12 +137,14 @@ export default {
   data() {
     return {
       'stocksDataList': [], //Usado para exibição da lista de ações.
-      'stocksData': [],
+      'originalStocksPrices': {}, //Preços no início da sessão. Ex: {'T': 50}.
+      'stocksData': [], //Usado para constante atualização das ações.
       'supportedSymbols': [],
-      'selectedStocks': [],
+      'selectedStocks': [], //Ações selecionadas para monitoramento. Ex:['T','N'].
       'isFirstConnection': true,
       'connected': false,
-      'listUpdateInterval': null
+      'listUpdateInterval': null,
+      'listUpdateTime': 50 //Tempo em ms para atualização da lista de ações.
     }
   },
   mounted() {
@@ -159,13 +181,33 @@ export default {
     }
   },
   methods: {
+    //Baseado no symbol e no preço retorna a string do ícone adequado.
+    priceIcon(symbol, price) {
+      var icon = 'dash';
+      if (this.originalStocksPrices[symbol] > price) {
+        icon = 'chevron-down';
+      } else if (this.originalStocksPrices[symbol] < price) {
+        icon = 'chevron-up';
+      }
+      return icon;
+    },
+    //Baseado no symbol e no preço retorna a string da variante adequada.
+    priceVariant(symbol, price) {
+      var icon = 'secondary';
+      if (this.originalStocksPrices[symbol] > price) {
+        icon = 'danger';
+      } else if (this.originalStocksPrices[symbol] < price) {
+        icon = 'success';
+      }
+      return icon;
+    },
     //Intervalo de atualização da lista de ações para melhorar a performance.
     showListInterval() {
       this.listUpdateInterval = setInterval(
         ()=>{
           this.stocksDataList = this._.cloneDeep(this.stocksData);
         },
-        100
+        this.listUpdateTime
       )
     },
     selectAllStocks() {
@@ -195,7 +237,8 @@ export default {
         function(stock){ return stock.symbol == symbol }
       );
     },
-    //Recebe uma message do tipo stocks-update e atualiza as stocks com os novos dados.
+    //Recebe uma message do tipo stocks-update e atualiza as stocks
+    //com os novos dados.
     updateStock( parsed ) {
 
       //Para cada symbol atualizado.
@@ -219,9 +262,16 @@ export default {
           this.stocksData = parsed.stocksData;
           this.supportedSymbols = parsed.supportedSymbols;
 
-          //Na primeira conexão serão observadas todas as ações.
           if ( this.isFirstConnection ) {
+            //Na primeira conexão serão observadas todas as ações.
             this.selectedStocks = this._.cloneDeep(this.supportedSymbols);
+            //Armazenando os valores iniciais das ações para ter indicação de
+            //altas ou baixas.
+            var stocks = this._.cloneDeep(this.stocksData);
+            this._.each(stocks,(stock)=>{
+              this.originalStocksPrices[stock.symbol] = stock.basePrice;
+            })
+            // this.originalStocksPrices = ;
           }
 
           this.logMessage(parsed);
