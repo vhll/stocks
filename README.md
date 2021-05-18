@@ -8,7 +8,7 @@ Run
 ```
 git clone https://github.com/vhll/stocks.git
 ```
-open the project's root directory and the run
+open project's root directory and the run
 ```
 yarn install
 ```
