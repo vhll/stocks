@@ -1,4 +1,4 @@
-# financialmarket
+# stocks
 
 ## Project setup
 ```
