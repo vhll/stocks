@@ -1,7 +1,7 @@
 # Frontend for [Stocks WebSocket Demo Server](https://bitbucket.org/byne/testfrontend1/src/master/)
 
 ## Dependencies
-To run this project you will need [Stocks WebSocket Demo Server](https://bitbucket.org/byne/testfrontend1/src/master/) running first. All instructions you can find in project's [README](https://bitbucket.org/byne/testfrontend1/src/master/README.md) file.
+To run this project you will need [Stocks WebSocket Demo Server](https://bitbucket.org/byne/testfrontend1/src/master/) running first. All instructions can be found in project's [README](https://bitbucket.org/byne/testfrontend1/src/master/README.md) file.
 
 ## Project setup
 ```
