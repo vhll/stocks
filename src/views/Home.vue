@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- Mensagem de conectando -->
     <div
       v-show="!connected"
       class="connecting"
@@ -10,6 +11,7 @@
       </b-button>
     </div>
 
+    <!-- Seleção de ativos -->
     <div
       class="selection-box"
       v-show="stocksDataList.length"
@@ -25,25 +27,25 @@
       >
         {{stock.symbol}}
       </b-button>
-      <span class="stock">
-        <b-button
-          variant="success"
-          size="sm"
-          @click="selectAllStocks()"
-          :disabled="isSelectAllDisabled"
-        >Todos</b-button>
-      </span>
-      <span class="stock">
-        <b-button
-          variant="danger"
-          size="sm"
-          @click="unselectAllStocks()"
-          :disabled="isUnselectAllDisabled"
-        >Nenhum</b-button>
-      </span>
+      <b-button
+        id="select-all-stocks"
+        class="stock"
+        variant="success"
+        size="sm"
+        @click="selectAllStocks()"
+        :disabled="isSelectAllDisabled"
+      >Todos</b-button>
+      <b-button
+        id="unselect-all-stocks"
+        class="stock"
+        variant="danger"
+        size="sm"
+        @click="unselectAllStocks()"
+        :disabled="isUnselectAllDisabled"
+      >Nenhum</b-button>
     </div>
 
-    <!-- Listagem de ações -->
+    <!-- Listagem de ativos -->
     <div class="stocks-list-box">
       <b-card-group
         columns
@@ -142,15 +144,15 @@ export default {
   },
   data() {
     return {
-      'stocksDataList': [], //Usado para exibição da lista de ações.
+      'stocksDataList': [], //Usado para exibição da lista de ativos.
       'originalStocksPrices': {}, //Preços no início da sessão. Ex: {'T': 50}.
-      'stocksData': [], //Usado para constante atualização das ações.
+      'stocksData': [], //Usado para constante atualização dos ativos.
       'supportedSymbols': [],
-      'selectedStocks': [], //Ações selecionadas para monitoramento. Ex:['T','N'].
+      'selectedStocks': [], //Ativos selecionados para monitoramento. Ex:['T','N'].
       'isFirstConnection': true,
       'connected': false,
       'listUpdateInterval': null,
-      'listUpdateTime': 50 //Tempo em ms para atualização da lista de ações.
+      'listUpdateTime': 50 //Tempo em ms para atualização da lista de ativos.
     }
   },
   mounted() {
@@ -215,7 +217,7 @@ export default {
       }
       return icon;
     },
-    //Intervalo de atualização da lista de ações para melhorar a performance.
+    //Intervalo de atualização da lista de ativos para melhorar a performance.
     showListInterval() {
       this.listUpdateInterval = setInterval(
         ()=>{
@@ -245,7 +247,7 @@ export default {
     stockBadgeVariant(symbol) {
       return this.isStockSelected(symbol)?'info':'secondary';
     },
-    //Retorna uma ação
+    //Retorna um ativo.
     getStock(symbol) {
       return this.stocksData.find(
         function(stock){ return stock.symbol == symbol }
@@ -277,15 +279,14 @@ export default {
           this.supportedSymbols = parsed.supportedSymbols;
 
           if ( this.isFirstConnection ) {
-            //Na primeira conexão serão observadas todas as ações.
+            //Na primeira conexão serão monitorados todos os ativos.
             this.selectedStocks = this._.cloneDeep(this.supportedSymbols);
-            //Armazenando os valores iniciais das ações para ter indicação de
+            //Armazenando os valores iniciais dos ativos para ter indicação de
             //altas ou baixas.
             var stocks = this._.cloneDeep(this.stocksData);
             this._.each(stocks,(stock)=>{
               this.originalStocksPrices[stock.symbol] = stock.basePrice;
             })
-            // this.originalStocksPrices = ;
           }
 
           this.logMessage(parsed);
@@ -324,7 +325,7 @@ export default {
     stopListenToMessages() {
       delete this.$options.sockets.onmessage
     },
-    //Faz o subscribe para receber atualizações das stocks.
+    //Faz o subscribe para receber atualizações dos ativos.
     subscribe(symbols) {
       console.log('subscribe', symbols);
       var message = {
@@ -333,7 +334,7 @@ export default {
       }
       this.$socket.sendObj(message);
     },
-    //Para o subscribe que recebe atualizações das stocks.
+    //Para o subscribe que recebe atualizações dos ativos.
     unsubscribe(symbols) {
       console.log('unsubscribe', symbols);
       var message = {

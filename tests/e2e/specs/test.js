@@ -1,8 +1,15 @@
 // https://docs.cypress.io/api/introduction/api.html
 
-describe('My First Test', () => {
-  it('Visits the app root url', () => {
+describe('Basic Tests', () => {
+  it('Check stocks list', () => {
     cy.visit('/')
-    cy.contains('h1', 'Welcome to Your Vue.js App')
+    cy.get('.stocks-list-box').should('be.visible').contains('IET')
+    cy.get('.stocks-list-box').contains('Morissette Group')
+    cy.get('.stocks-list-box').contains('R$')
+  })
+  it('Check stocks selection list', () => {
+    cy.get('.selection-box').should('be.visible').contains('T')
+    cy.get('.selection-box').contains('Todos')
+    cy.get('.selection-box').contains('Nenhum')
   })
 })
