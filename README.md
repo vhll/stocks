@@ -1,13 +1,13 @@
 # Frontend for [Stocks WebSocket Demo Server](https://bitbucket.org/byne/testfrontend1/src/master/)
 
-##Dependencies
+## Dependencies
 To run this project you will need [Stocks WebSocket Demo Server](https://bitbucket.org/byne/testfrontend1/src/master/) running first. All instructions you can find in project's [README](https://bitbucket.org/byne/testfrontend1/src/master/README.md) file.
 
-##Instalation
+## Instalation
 Run the git clone, open the project's root directory and the run yarn install.
 After you should be able to run vue ui.
 
-##Running the project
+## Running the project
 Inside vue ui, click in Tarefas > serve > Iniciar tarefa. Wait until it buids the project then click Abrir Aplicativo.
 
 # stocks
