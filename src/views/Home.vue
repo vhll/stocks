@@ -116,16 +116,12 @@ export default {
   },
   data() {
     return {
-      'stocksDataList': [],
+      'stocksDataList': [], //Usado para exibição da lista de ações.
       'stocksData': [],
       'supportedSymbols': [],
-      'observedStocks': [],
       'selectedStocks': [],
       'isFirstConnection': true,
       'connected': false,
-      //Define se deve ser feito subscribe quando uma mensagem de conectado
-      //é recebida.
-      'autoSubscribe': true,
       'listUpdateInterval': null
     }
   },
@@ -163,6 +159,7 @@ export default {
     }
   },
   methods: {
+    //Intervalo de atualização da lista de ações para melhorar a performance.
     showListInterval() {
       this.listUpdateInterval = setInterval(
         ()=>{
@@ -224,7 +221,6 @@ export default {
 
           //Na primeira conexão serão observadas todas as ações.
           if ( this.isFirstConnection ) {
-            this.observedStocks = this._.cloneDeep(this.supportedSymbols);
             this.selectedStocks = this._.cloneDeep(this.supportedSymbols);
           }
 
@@ -267,7 +263,6 @@ export default {
     //Faz o subscribe para receber atualizações das stocks.
     subscribe(symbols) {
       console.log('subscribe', symbols);
-      this.autoSubscribe = true;
       var message = {
         "event": "subscribe",
         "stocks": symbols
@@ -277,7 +272,6 @@ export default {
     //Para o subscribe que recebe atualizações das stocks.
     unsubscribe(symbols) {
       console.log('unsubscribe', symbols);
-      this.autoSubscribe = false;
       var message = {
         "event": "unsubscribe",
         "stocks": symbols
