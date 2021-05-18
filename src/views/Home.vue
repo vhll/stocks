@@ -20,7 +20,7 @@
       <b-button
         v-for="stock in stocksDataList"
         :key="stock.symbol"
-        :variant="stockBadgeVariant(stock.symbol)"
+        :variant="stockButtonVariant(stock.symbol)"
         size="sm"
         class="stock"
         @click="toggleSelectStock(stock.symbol)"
@@ -63,7 +63,7 @@
             <div class="stock-header">
               <div class="name">{{stock.companyName}}</div>
               <div class="badge-box">
-                <b-badge variant="light">{{stock.symbol}}</b-badge>
+                <b-badge variant="info">{{stock.symbol}}</b-badge>
               </div>
             </div>
           </template>
@@ -72,7 +72,9 @@
               class="price"
               :id="'tooltip-target-' + index"
             >
-              <span>R${{stock.basePrice.toFixed(2)}}</span>
+              <span>
+                {{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stock.basePrice)}}
+              </span>
               <div
                 class="icon"
               >
@@ -83,7 +85,7 @@
               </div>
             </div>
             <b-tooltip :target="'tooltip-target-' + index" triggers="hover">
-              Preço no início desta sessão: R${{originalStocksPrices[stock.symbol].toFixed(2)}}
+              Preço no início desta sessão: {{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(originalStocksPrices[stock.symbol])}}
             </b-tooltip>
           </b-card-text>
         </b-card>
@@ -152,7 +154,7 @@ export default {
       'isFirstConnection': true,
       'connected': false,
       'listUpdateInterval': null,
-      'listUpdateTime': 50 //Tempo em ms para atualização da lista de ativos.
+      'listUpdateTime': 200 //Tempo em ms para atualização da lista de ativos.
     }
   },
   mounted() {
@@ -244,7 +246,7 @@ export default {
     isStockSelected(symbol) {
       return this.selectedStocks.includes(symbol);
     },
-    stockBadgeVariant(symbol) {
+    stockButtonVariant(symbol) {
       return this.isStockSelected(symbol)?'info':'secondary';
     },
     //Retorna um ativo.
