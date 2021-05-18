@@ -4,7 +4,10 @@
       v-show="!connected"
       class="connecting"
     >
-      <b-spinner variant="info" label="Spinning"></b-spinner>
+      <b-button variant="info" disabled>
+        <b-spinner small type="grow"></b-spinner>
+        Conectando...
+      </b-button>
     </div>
 
     <div
@@ -95,9 +98,13 @@
   width: 20%;
 }
 .connecting {
+  z-index: 1;
   position: absolute;
   top: 50%;
   left: 50%;
+}
+.connecting .disabled{
+  opacity: 1 !important;
 }
 </style>
 
@@ -123,12 +130,15 @@ export default {
     }
   },
   mounted() {
-    console.log("mounted", this);
+    console.log("mounted", this, this.$socket);
     //Para agilizar o encerramento da conexão ao recarregar o componente
     //durante o desenvolvimento.
     this.$socket.close();
     this.startListenToMessages();
     this.showListInterval();
+    this.$options.sockets.onclose = () => {
+      this.connected = false;
+    }
   },
   beforeDestroy() {
     if (this.listUpdateInterval){
@@ -222,17 +232,17 @@ export default {
 
           //Fará o subscribe somente se não for a primeira conexão.
           //Na primeira conexão o subscribe será feito pelo watch de selectedStocks.
-          if (!this.isFirstConnection) {
+          if (!this.isFirstConnection && this.selectedStocks.length) {
             this.subscribe(this.selectedStocks);
           }
           this.connected = true;
+          this.isFirstConnection = false;
         },
         "stocks-update": () => {
           this.updateStock(parsed);
         },
         "disconnecting": () => {
           this.connected = false;
-          this.isFirstConnection = false;
           this.logMessage(parsed);
         }
       }
