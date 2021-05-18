@@ -15,25 +15,31 @@
       v-show="stocksDataList.length"
     >
       <span>Ativos:</span>
-      <span
+      <b-button
         v-for="stock in stocksDataList"
         :key="stock.symbol"
+        :variant="stockBadgeVariant(stock.symbol)"
+        size="sm"
         class="stock"
         @click="toggleSelectStock(stock.symbol)"
       >
-        <b-badge :variant="stockBadgeVariant(stock.symbol)">{{stock.symbol}}</b-badge>
-      </span>
+        {{stock.symbol}}
+      </b-button>
       <span class="stock">
-        <b-badge
+        <b-button
           variant="success"
+          size="sm"
           @click="selectAllStocks()"
-        >Todos</b-badge>
+          :disabled="isSelectAllDisabled"
+        >Todos</b-button>
       </span>
       <span class="stock">
-        <b-badge
+        <b-button
           variant="danger"
+          size="sm"
           @click="unselectAllStocks()"
-        >Nenhum</b-badge>
+          :disabled="isUnselectAllDisabled"
+        >Nenhum</b-button>
       </span>
     </div>
 
@@ -62,21 +68,21 @@
           <b-card-text>
             <div
               class="price"
+              :id="'tooltip-target-' + index"
             >
               <span>R${{stock.basePrice.toFixed(2)}}</span>
               <div
                 class="icon"
               >
                 <b-icon
-                  :id="'tooltip-target-' + index"
                   :icon="priceIcon(stock.symbol, stock.basePrice)"
                   :variant="priceVariant(stock.symbol, stock.basePrice)"
                 ></b-icon>
-                <b-tooltip :target="'tooltip-target-' + index" triggers="hover">
-                  Preço no início desta sessão: R${{originalStocksPrices[stock.symbol].toFixed(2)}}
-                </b-tooltip>
               </div>
             </div>
+            <b-tooltip :target="'tooltip-target-' + index" triggers="hover">
+              Preço no início desta sessão: R${{originalStocksPrices[stock.symbol].toFixed(2)}}
+            </b-tooltip>
           </b-card-text>
         </b-card>
       </b-card-group>
@@ -89,9 +95,9 @@
   margin: 20px;
 }
 .selection-box .stock {
-  margin-left: 5px;
-  margin-right: 5px;
+  margin: 5px;
   cursor: pointer;
+  box-shadow: unset !important;
 }
 .stocks-list-box {
   width: 80%;
@@ -178,6 +184,14 @@ export default {
         }
       },
       deep: false
+    }
+  },
+  computed: {
+    isSelectAllDisabled() {
+      return this.selectedStocks.length == this.supportedSymbols.length;
+    },
+    isUnselectAllDisabled() {
+      return this.selectedStocks.length == 0;
     }
   },
   methods: {
