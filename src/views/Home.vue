@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- Mensagem de conectando -->
     <div
       v-show="!connected"
       class="connecting"
@@ -10,34 +11,41 @@
       </b-button>
     </div>
 
+    <!-- Seleção de ativos -->
     <div
       class="selection-box"
       v-show="stocksDataList.length"
     >
       <span>Ativos:</span>
-      <span
+      <b-button
         v-for="stock in stocksDataList"
         :key="stock.symbol"
+        :variant="stockButtonVariant(stock.symbol)"
+        size="sm"
         class="stock"
         @click="toggleSelectStock(stock.symbol)"
       >
-        <b-badge :variant="stockBadgeVariant(stock.symbol)">{{stock.symbol}}</b-badge>
-      </span>
-      <span class="stock">
-        <b-badge
-          variant="success"
-          @click="selectAllStocks()"
-        >Todos</b-badge>
-      </span>
-      <span class="stock">
-        <b-badge
-          variant="danger"
-          @click="unselectAllStocks()"
-        >Nenhum</b-badge>
-      </span>
+        {{stock.symbol}}
+      </b-button>
+      <b-button
+        id="select-all-stocks"
+        class="stock"
+        variant="success"
+        size="sm"
+        @click="selectAllStocks()"
+        :disabled="isSelectAllDisabled"
+      >Todos</b-button>
+      <b-button
+        id="unselect-all-stocks"
+        class="stock"
+        variant="danger"
+        size="sm"
+        @click="unselectAllStocks()"
+        :disabled="isUnselectAllDisabled"
+      >Nenhum</b-button>
     </div>
 
-    <!-- Listagem de ações -->
+    <!-- Listagem de ativos -->
     <div class="stocks-list-box">
       <b-card-group
         columns
@@ -47,7 +55,7 @@
           text-variant="white"
           :header="stock.symbol"
           class="text-center"
-          v-for="stock in stocksDataList"
+          v-for="(stock, index) in stocksDataList"
           :key="stock.symbol"
           v-show="isStockSelected(stock.symbol)"
         >
@@ -55,12 +63,30 @@
             <div class="stock-header">
               <div class="name">{{stock.companyName}}</div>
               <div class="badge-box">
-                <b-badge variant="light">{{stock.symbol}}</b-badge>
+                <b-badge variant="info">{{stock.symbol}}</b-badge>
               </div>
             </div>
           </template>
           <b-card-text>
-            <span>R${{stock.basePrice.toFixed(2)}}</span>
+            <div
+              class="price"
+              :id="'tooltip-target-' + index"
+            >
+              <span>
+                {{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stock.basePrice)}}
+              </span>
+              <div
+                class="icon"
+              >
+                <b-icon
+                  :icon="priceIcon(stock.symbol, stock.basePrice)"
+                  :variant="priceVariant(stock.symbol, stock.basePrice)"
+                ></b-icon>
+              </div>
+            </div>
+            <b-tooltip :target="'tooltip-target-' + index" triggers="hover">
+              Preço no início desta sessão: {{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(originalStocksPrices[stock.symbol])}}
+            </b-tooltip>
           </b-card-text>
         </b-card>
       </b-card-group>
@@ -73,9 +99,9 @@
   margin: 20px;
 }
 .selection-box .stock {
-  margin-left: 5px;
-  margin-right: 5px;
+  margin: 5px;
   cursor: pointer;
+  box-shadow: unset !important;
 }
 .stocks-list-box {
   width: 80%;
@@ -106,6 +132,10 @@
 .connecting .disabled{
   opacity: 1 !important;
 }
+.price .icon{
+  display: inline-block;
+  padding-left: 5px;
+}
 </style>
 
 <script>
@@ -116,17 +146,15 @@ export default {
   },
   data() {
     return {
-      'stocksDataList': [],
-      'stocksData': [],
+      'stocksDataList': [], //Usado para exibição da lista de ativos.
+      'originalStocksPrices': {}, //Preços no início da sessão. Ex: {'T': 50}.
+      'stocksData': [], //Usado para constante atualização dos ativos.
       'supportedSymbols': [],
-      'observedStocks': [],
-      'selectedStocks': [],
+      'selectedStocks': [], //Ativos selecionados para monitoramento. Ex:['T','N'].
       'isFirstConnection': true,
       'connected': false,
-      //Define se deve ser feito subscribe quando uma mensagem de conectado
-      //é recebida.
-      'autoSubscribe': true,
-      'listUpdateInterval': null
+      'listUpdateInterval': null,
+      'listUpdateTime': 200 //Tempo em ms para atualização da lista de ativos.
     }
   },
   mounted() {
@@ -162,13 +190,42 @@ export default {
       deep: false
     }
   },
+  computed: {
+    isSelectAllDisabled() {
+      return this.selectedStocks.length == this.supportedSymbols.length;
+    },
+    isUnselectAllDisabled() {
+      return this.selectedStocks.length == 0;
+    }
+  },
   methods: {
+    //Baseado no symbol e no preço retorna a string do ícone adequado.
+    priceIcon(symbol, price) {
+      var icon = 'dash';
+      if (this.originalStocksPrices[symbol] > price) {
+        icon = 'chevron-down';
+      } else if (this.originalStocksPrices[symbol] < price) {
+        icon = 'chevron-up';
+      }
+      return icon;
+    },
+    //Baseado no symbol e no preço retorna a string da variante adequada.
+    priceVariant(symbol, price) {
+      var icon = 'secondary';
+      if (this.originalStocksPrices[symbol] > price) {
+        icon = 'danger';
+      } else if (this.originalStocksPrices[symbol] < price) {
+        icon = 'success';
+      }
+      return icon;
+    },
+    //Intervalo de atualização da lista de ativos para melhorar a performance.
     showListInterval() {
       this.listUpdateInterval = setInterval(
         ()=>{
           this.stocksDataList = this._.cloneDeep(this.stocksData);
         },
-        100
+        this.listUpdateTime
       )
     },
     selectAllStocks() {
@@ -189,16 +246,17 @@ export default {
     isStockSelected(symbol) {
       return this.selectedStocks.includes(symbol);
     },
-    stockBadgeVariant(symbol) {
+    stockButtonVariant(symbol) {
       return this.isStockSelected(symbol)?'info':'secondary';
     },
-    //Retorna uma ação
+    //Retorna um ativo.
     getStock(symbol) {
       return this.stocksData.find(
         function(stock){ return stock.symbol == symbol }
       );
     },
-    //Recebe uma message do tipo stocks-update e atualiza as stocks com os novos dados.
+    //Recebe uma message do tipo stocks-update e atualiza as stocks
+    //com os novos dados.
     updateStock( parsed ) {
 
       //Para cada symbol atualizado.
@@ -222,10 +280,15 @@ export default {
           this.stocksData = parsed.stocksData;
           this.supportedSymbols = parsed.supportedSymbols;
 
-          //Na primeira conexão serão observadas todas as ações.
           if ( this.isFirstConnection ) {
-            this.observedStocks = this._.cloneDeep(this.supportedSymbols);
+            //Na primeira conexão serão monitorados todos os ativos.
             this.selectedStocks = this._.cloneDeep(this.supportedSymbols);
+            //Armazenando os valores iniciais dos ativos para ter indicação de
+            //altas ou baixas.
+            var stocks = this._.cloneDeep(this.stocksData);
+            this._.each(stocks,(stock)=>{
+              this.originalStocksPrices[stock.symbol] = stock.basePrice;
+            })
           }
 
           this.logMessage(parsed);
@@ -264,20 +327,18 @@ export default {
     stopListenToMessages() {
       delete this.$options.sockets.onmessage
     },
-    //Faz o subscribe para receber atualizações das stocks.
+    //Faz o subscribe para receber atualizações dos ativos.
     subscribe(symbols) {
       console.log('subscribe', symbols);
-      this.autoSubscribe = true;
       var message = {
         "event": "subscribe",
         "stocks": symbols
       }
       this.$socket.sendObj(message);
     },
-    //Para o subscribe que recebe atualizações das stocks.
+    //Para o subscribe que recebe atualizações dos ativos.
     unsubscribe(symbols) {
       console.log('unsubscribe', symbols);
-      this.autoSubscribe = false;
       var message = {
         "event": "unsubscribe",
         "stocks": symbols
