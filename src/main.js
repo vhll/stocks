@@ -17,7 +17,7 @@ Vue.use(IconsPlugin)
 import VueNativeSock from 'vue-native-websocket'
 Vue.use(
   VueNativeSock,
-  'ws://localhost:8080',
+  'ws://' + document.location.hostname + ':8080',
   {
     format: 'json',
     reconnection: true, // (Boolean) whether to reconnect automatically (false)
